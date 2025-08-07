@@ -30,7 +30,7 @@ import { Eye, PenLine, Trash2 } from "lucide-react";
 
 // React
 import { useState, type ChangeEvent, type FormEvent } from "react";
-
+import { v4 as uuid } from "uuid";
 // Components
 import TableSkeleton from "@/components/ui/TableSkeleton";
 import AlertModal from "./shared/AlertDialog";
@@ -38,18 +38,20 @@ import ModalDialog from "./shared/Modal";
 
 // API
 import {
-  useAddDashboardProductMutation,
+  useAddProductMutation,
   useDeleteDashboardProductMutation,
   useGetCategoriesQuery,
   useGetDashboardProductsQuery,
-  useUpdateDashboardProductMutation,
+  // useUpdateDashboardProductMutation,
+  useUpdateProductMutation,
 } from "@/app/services/apiSlice";
 
 // Constants
 import { BASE_URL } from "@/config/index.config";
 
 // Types
-import type { IDashboardProduct, IProduct } from "@/interfaces";
+import type { ICategory, IProduct } from "@/interfaces";
+import CookieService from "@/services/CookieService";
 
 const DashboardProductsTable = () => {
   // Chakra Hooks
@@ -75,10 +77,6 @@ const DashboardProductsTable = () => {
     { isSuccess: isProductRemove, isLoading: isProductRemoveLoading },
   ] = useDeleteDashboardProductMutation();
 
-  const [updateProduct] = useUpdateDashboardProductMutation();
-
-  const [addAProduct] = useAddDashboardProductMutation();
-
   // Local State
   const [clickedProduct, setClickedProduct] = useState("");
   const [productToUpdate, setProductToUpdate] = useState<IProduct>({
@@ -94,14 +92,21 @@ const DashboardProductsTable = () => {
       url: "",
     },
   });
-  const [productToAdd, setProductToAdd] = useState<IDashboardProduct>({
+  const [productToAdd, setProductToAdd] = useState<IProduct>({
+    documentId: "",
     title: "",
     description: "",
     price: 0,
     stock: 0,
-    category: "",
+    category: {
+      title: "",
+    },
+    thumbnail: {
+      url: "",
+    },
   });
   const [updateThumbnail, setUpdateThumbnail] = useState<File>();
+
   // Handlers
   const deleteProductHandler = (documentId: string) => {
     onOpen();
@@ -129,11 +134,19 @@ const DashboardProductsTable = () => {
 
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
+    const selectedCategory = categories?.data.find(
+      (cat) => cat.documentId === selectedId,
+    );
+
+    if (!selectedCategory) return;
+
     setProductToAdd((prev) => ({
       ...prev,
-      category: selectedId,
+      category: selectedCategory,
     }));
   };
+
+  const [updateProduct] = useUpdateProductMutation();
 
   const onSubmitUpdateHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -152,77 +165,123 @@ const DashboardProductsTable = () => {
       return;
     }
 
-    const formData = new FormData();
+    // 1. Get Strapi numeric ID from documentId
+    const res = await fetch(
+      `http://localhost:1337/api/products?filters[documentId][$eq]=${productToUpdate.documentId}`,
+    );
+    const productRes = await res.json();
+    const strapiId = productRes?.data?.[0]?.id;
 
-    formData.append(
-      "data",
-      JSON.stringify({
+    if (!strapiId) {
+      toast({
+        title: "Product not found",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // 2. Upload thumbnail if exists
+    if (updateThumbnail) {
+      const uploadFormData = new FormData();
+      uploadFormData.append("files", updateThumbnail);
+      uploadFormData.append("ref", "api::product.product");
+      uploadFormData.append("refId", strapiId);
+      uploadFormData.append("field", "thumbnail");
+
+      await fetch("http://localhost:1337/api/upload", {
+        method: "POST",
+        body: uploadFormData,
+        headers: {
+          Authorization: `Bearer ${CookieService.get("jwt")}`,
+        },
+      });
+    }
+
+    // 3. Update product info
+    await updateProduct({
+      productId: productToUpdate.documentId,
+      data: {
         title: productToUpdate.title,
         description: productToUpdate.description,
         price: Number(productToUpdate.price),
         stock: Number(productToUpdate.stock),
-        category: productToUpdate.category?.documentId,
-      }),
-    );
+        category: productToUpdate.category?.documentId as unknown as ICategory,
+      },
+    });
 
-    if (updateThumbnail) {
-      formData.append("files.thumbnail", updateThumbnail);
-    }
+    toast({
+      title: "Product Updated Successfully",
+      status: "success",
+      duration: 2000,
+      isClosable: true,
+    });
 
-    try {
-      await updateProduct({
-        documentId: productToUpdate.documentId,
-        body: formData,
-      }).unwrap();
-
-      toast({
-        title: "Product Updated Successfully",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-
-      onCloseUpdateModal();
-    } catch (err: any) {
-      console.error("Update error:", err);
-      toast({
-        title: "Update Failed",
-        description: err?.data?.error?.message || "Bad Request",
-        status: "error",
-        duration: 2000,
-        isClosable: true,
-      });
-    }
+    onCloseUpdateModal();
   };
+
+  const [addProduct] = useAddProductMutation();
 
   const onSubmitAddHandler = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    try {
-      await addAProduct({
-        body: {
-          ...productToAdd,
-          category: productToAdd.category,
-        },
-      }).unwrap();
-
+    // 1. Validate required fields
+    if (
+      !productToAdd.title ||
+      !productToAdd.description ||
+      !productToAdd.category?.documentId
+    ) {
       toast({
-        title: "Product Added Successfully.",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-
-      onCloseAddModal();
-    } catch (error) {
-      console.log(error);
-      toast({
-        title: "Failed to Add Product",
+        title: "Missing required fields",
         status: "error",
         duration: 2000,
         isClosable: true,
       });
+      return;
     }
+
+    // 2. Generate new documentId
+    const documentId = uuid(); // لازم تكون عامل import لـ uuid
+
+    // 3. Get Strapi ID for category using its documentId
+    const categoryRes = await fetch(
+      `http://localhost:1337/api/categories?filters[documentId][$eq]=${productToAdd.category.documentId}`,
+    );
+    const categoryData = await categoryRes.json();
+    const strapiCategoryId = categoryData?.data?.[0]?.id;
+
+    if (!strapiCategoryId) {
+      toast({
+        title: "Category not found",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // 4. Add product
+    await addProduct({
+      data: {
+        title: productToAdd.title,
+        description: productToAdd.description,
+        price: Number(productToAdd.price),
+        stock: Number(productToAdd.stock),
+        category: strapiCategoryId,
+        documentId,
+      },
+    }).unwrap();
+
+    // 5. Success toast + close modal
+    toast({
+      title: "Product Added Successfully",
+      status: "success",
+      duration: 2000,
+      isClosable: true,
+    });
+
+    onCloseAddModal();
   };
 
   if (isDashboardProductLoading) return <TableSkeleton />;
@@ -381,6 +440,7 @@ const DashboardProductsTable = () => {
             <FormErrorMessage>Enter A Valid Stock</FormErrorMessage>
           </FormControl>
           <FormControl>
+            <FormLabel>Thumbnail</FormLabel>
             <Input
               type="file"
               id="thumbnail"
@@ -486,7 +546,6 @@ const DashboardProductsTable = () => {
             </NumberInput>
             <FormErrorMessage>Enter A Valid Stock</FormErrorMessage>
           </FormControl>
-
           <ButtonGroup justifyContent={"end"}>
             <Button variant={"ghost"} onClick={onCloseAddModal}>
               Close

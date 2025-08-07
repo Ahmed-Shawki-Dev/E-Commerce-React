@@ -55,3 +55,5 @@ export interface UpdateProductCache {
   stock?: number;
   thumbnail?: { url: string };
 }
+
+//-----------------------------

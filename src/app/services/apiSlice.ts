@@ -1,5 +1,5 @@
 import { BASE_URL } from "@/config/index.config";
-import type { ICategory, IDashboardProduct, IProduct } from "@/interfaces";
+import type { ICategory, IProduct } from "@/interfaces";
 import CookieService from "@/services/CookieService";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
@@ -47,27 +47,23 @@ export const apiSlice = createApi({
       invalidatesTags: ["Products"],
     }),
 
-    updateDashboardProduct: builder.mutation<
-      { data: IProduct },
-      {
-        documentId: string;
-        body: FormData;
-      }
-    >({
-      query: ({ documentId, body }) => ({
-        url: `/api/products/${documentId}`,
-        method: "PUT",
-        body, // FormData فيها `data` و `files.thumbnail`
-      }),
-
-      invalidatesTags: [{ type: "Products", id: "LIST" }],
-    }),
-
-    addDashboardProduct: builder.mutation<void, { body: IDashboardProduct }>({
-      query: ({ body }) => ({
+    addProduct: builder.mutation<{ data: IProduct }, { data: IProduct }>({
+      query: ({ data }) => ({
         url: `/api/products`,
         method: "POST",
-        body: { data: body },
+        body: { data },
+      }),
+      invalidatesTags: ["Products"],
+    }),
+
+    updateProduct: builder.mutation<
+      { data: IProduct },
+      { productId: string; data: IProduct }
+    >({
+      query: ({ productId, data }) => ({
+        url: `/api/products/${productId}`,
+        method: "PUT",
+        body: { data },
       }),
       invalidatesTags: ["Products"],
     }),
@@ -78,6 +74,6 @@ export const {
   useGetDashboardProductsQuery,
   useGetCategoriesQuery,
   useDeleteDashboardProductMutation,
-  useUpdateDashboardProductMutation,
-  useAddDashboardProductMutation,
+  useAddProductMutation,
+  useUpdateProductMutation,
 } = apiSlice;
