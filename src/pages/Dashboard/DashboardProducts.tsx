@@ -1,4 +1,4 @@
-import DashboardProductsTable from "@/components/DashboardProductsTable";
+import DashboardProductsTable from "@/components/DashboardTable/DashboardProductsTable";
 import { Box } from "@chakra-ui/react";
 
 const DashboardProductsPage = () => {

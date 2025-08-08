@@ -1,5 +1,4 @@
 import { removeItemFromCartAction } from "@/app/features/cartSlice";
-import { BASE_URL } from "@/config/index.config";
 import type { ICart } from "@/interfaces";
 import { Button, Divider, Flex, Img, Text } from "@chakra-ui/react";
 import { useState } from "react";
@@ -31,7 +30,7 @@ const CartItemsDrawer = ({
           wrap="nowrap"
         >
           <Img
-            src={`${BASE_URL}${thumbnail?.url}`}
+            src={`${thumbnail?.url}`}
             boxSize="60px"
             borderRadius="md"
             objectFit="cover"

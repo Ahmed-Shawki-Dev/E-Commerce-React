@@ -8,7 +8,6 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
-  useColorModeValue,
   Stack,
   useColorMode,
   IconButton,
@@ -39,7 +38,6 @@ export default function Nav() {
 
   return (
     <Box
-      bg={useColorModeValue("white", "#0D0B12")}
       px={8}
       py={3}
       position="sticky"
@@ -54,7 +52,6 @@ export default function Nav() {
             fontSize="2xl"
             fontWeight="bold"
             fontFamily="'Patrick Hand', cursive"
-            color={useColorModeValue("gray.800", "white")}
           >
             Hazem Store
           </Text>
@@ -67,7 +64,7 @@ export default function Nav() {
             leftIcon={<ShoppingCart size={18} />}
             size="sm"
             variant="solid"
-            colorScheme="teal"
+            colorScheme="blue"
             onClick={() => dispatch(openCartDrawer())}
           >
             ({cartItems.length})

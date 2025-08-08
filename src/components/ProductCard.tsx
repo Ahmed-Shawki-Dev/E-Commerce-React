@@ -1,4 +1,3 @@
-import { BASE_URL } from "@/config/index.config";
 import type { IProduct } from "@/interfaces";
 import {
   Flex,
@@ -29,7 +28,6 @@ export default function ProductCard({
       <Box
         w="300px"
         h="460px"
-        bg={useColorModeValue("white", "gray.800")}
         borderWidth="1px"
         rounded="lg"
         shadow="lg"
@@ -52,7 +50,7 @@ export default function ProductCard({
             )}
 
             <Image
-              src={`${BASE_URL}${thumbnail.url}`}
+              src={`${thumbnail?.url??''}`}
               alt={title}
               roundedTop="lg"
               h="230px"

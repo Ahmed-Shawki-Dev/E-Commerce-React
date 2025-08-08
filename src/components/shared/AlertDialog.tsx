@@ -18,6 +18,7 @@ interface IProps {
   rejectTxt: string;
   acceptTxt: string;
   onCLick: () => void;
+  isLoading?:boolean
 }
 
 export default function AlertModal({
@@ -28,6 +29,7 @@ export default function AlertModal({
   acceptTxt = "yes",
   rejectTxt = "cancel",
   onCLick: onClick,
+  isLoading 
 }: IProps) {
   const cancelRef = useRef(null);
 
@@ -50,7 +52,7 @@ export default function AlertModal({
             <Button ref={cancelRef} onClick={onClose}>
               {rejectTxt}
             </Button>
-            <Button colorScheme="red" ml={3} onClick={onClick}>
+            <Button colorScheme="red" ml={3} onClick={onClick} isLoading={isLoading}>
               {acceptTxt}
             </Button>
           </AlertDialogFooter>

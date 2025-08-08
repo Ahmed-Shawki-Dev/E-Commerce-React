@@ -63,7 +63,6 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
   return (
     <Box
       transition="3s ease"
-      bg={useColorModeValue("white", "gray.900")}
       borderRight="1px"
       borderRightColor={useColorModeValue("gray.200", "gray.700")}
       w={{ base: "full", md: 60 }}
@@ -109,22 +108,20 @@ const NavItem = ({
   return (
     <RouterLink to={to} end>
       {({ isActive }) => (
-        <Flex
-          align="center"
-          p="4"
-          mx="4"
-          my="2"
-          borderRadius="lg"
-          role="group"
-          cursor="pointer"
-          bg={isActive ? "cyan.400" : "transparent"}
-          color={isActive ? "white" : "inherit"}
-          _hover={{
-            bg: "cyan.400",
-            color: "white",
-          }}
-          {...rest}
-        >
+    <Flex
+  align="center"
+  p="4"
+  mx="4"
+  my="2"
+  borderRadius="lg"
+  role="group"
+  cursor="pointer"
+  boxShadow={isActive ? "0 0 12px #90CDF450" : "none"}
+  bg="transparent"
+
+  {...rest}
+>
+
           {icon && (
             <Icon
               mr="4"
@@ -149,7 +146,6 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
       px={{ base: 4, md: 4 }}
       height="20"
       alignItems="center"
-      bg={useColorModeValue("white", "gray.900")}
       borderBottomWidth="1px"
       borderBottomColor={useColorModeValue("gray.200", "gray.700")}
       justifyContent={{ base: "space-between", md: "flex-end" }}
@@ -191,7 +187,7 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
                 <Avatar
                   size={"sm"}
                   src={
-                    "https://images.unsplash.com/photo-1619946794135-5bc917a27793?ixlib=rb-0.3.5&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&s=b616b2c5b373a80ffc9636ba24f7a4a9"
+                    "https://upload.wikimedia.org/wikipedia/commons/7/78/Image.jpg"
                   }
                 />
 
@@ -212,7 +208,6 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
               </HStack>
             </MenuButton>
             <MenuList
-              bg={useColorModeValue("white", "gray.900")}
               borderColor={useColorModeValue("gray.200", "gray.700")}
             >
               <MenuItem>Profile</MenuItem>
@@ -263,7 +258,6 @@ const SidebarWithHeader = ({ children }: { children: ReactNode }) => {
         px="6"
         pb="6"
         h="100vh"
-        bg={useColorModeValue("white", "gray.900")}
       >
         {children}
       </Box>

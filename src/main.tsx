@@ -6,15 +6,20 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { Provider } from "react-redux";
 import { persistor, store } from "./app/store.ts";
 import { PersistGate } from "redux-persist/integration/react";
+import { theme } from "./theme/index.ts";
+import InternetConnectionProvider from "./provider/internetConnectionProvider.tsx";
 const queryClient = new QueryClient();
 createRoot(document.getElementById("root")!).render(
-  <Provider store={store}>
-    <QueryClientProvider client={queryClient}>
-      <ChakraProvider>
-        <PersistGate persistor={persistor}>
-          <App />
-        </PersistGate>
-      </ChakraProvider>
-    </QueryClientProvider>
-  </Provider>,
+  <InternetConnectionProvider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <ChakraProvider theme={theme}>
+          <PersistGate persistor={persistor}>
+            <App />
+          </PersistGate>
+        </ChakraProvider>
+      </QueryClientProvider>
+    </Provider>
+    ,
+  </InternetConnectionProvider>,
 );

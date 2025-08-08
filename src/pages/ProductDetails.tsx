@@ -1,5 +1,4 @@
 import { addToCartAction } from "@/app/features/cartSlice";
-import { BASE_URL } from "@/config/index.config";
 import { useGetProductDetails } from "@/hooks";
 import { trimText } from "@/utils";
 import {
@@ -50,7 +49,7 @@ export default function ProductPage() {
               <Image
                 rounded="lg"
                 alt="product image"
-                src={product && `${BASE_URL}${product.data.thumbnail?.url}`}
+                src={product && `${product.data.thumbnail?.url}`}
                 fit="cover"
                 w="full"
                 h={{ base: "300px", md: "400px", lg: "500px" }}
@@ -83,16 +82,15 @@ export default function ProductPage() {
                   mt={2}
                   cursor="pointer"
                   onClick={toggleSeeMore}
-                  color="blue.600"
                   fontWeight="medium"
                   textDecoration="underline"
                 >
-                  {seeMore ? "See less" : "See more"}
+                  {seeMore ? "See less" : "See more" }
                 </Text>
               </Box>
 
               <Button
-                colorScheme="teal"
+                colorScheme="blue"
                 size="lg"
                 onClick={(e) => {
                   e.preventDefault();
